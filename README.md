@@ -22,12 +22,12 @@ Run `gpxgen -h` to see the other command line options.
 
 |parameter|option|default value|explanation|
 |---|---|---|---|
-|outfile|`-o`|./[YYYYmmdd]_[strava_default].gpx|pass this option to set the outfile path. must be a writable location|
+|outfile|`-o`|[YYYYmmdd]_[strava_default].gpx|pass this option to set the outfile path. must be a writable location|
 |padding|`-p`|no pad|if `-p` is set, gpxgen interpolates 3 points between every pair of successive points in the input during input processing. useful for converting bike rides to runs|
 |randomness|`-r`|1|value between 0 and 1. when generating the route, gpxgen randomly picks a starting point in the initial [randomness] of the input file. if set to 1, route starts at any point; if set to 0, route only starts at the starting point of the input route|
 |activity type|`-C`|run|set `-C` to generate a cycling ride instead of a run|
 |date|`-d`|current system date|date of the generated route. pass a date string in dd/mm/YYYY format|
-|time|`-t`|random time between 0700-2100|hour of the start time of the generated route (minute and second are random)|
+|time|`-t`|random between 0700-2100|hour of the start time of the generated route (minute and second are random)|
 |timezone|`-z`|+8|timezone of the date and time set in `-d` and `-t`. the time written to the output file will be adjusted to GMT. e.g., if you live in GMT+8 and want a run at 9am local time, set `-t 9 -z 8`. output file will write the start time as 1am (GMT), so that when uploaded to strava it shows as 9am local time|
 |output distance|`-k`|10|use this option together with `-K`. this option sets the rough distance you want for the output route. gpxgen will randomly adjust by +/-.5km|
 |input distance|`-K`|26|use this option together with `-k`. this option sets the distance for the input route. gpxgen generates a route with [output dist.]/[input dist.] as many points as the input (after possible padding). if the ratio is >1, the output route will loop around the input---be careful to make the input a loop if you want to allow this|
