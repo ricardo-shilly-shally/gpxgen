@@ -12,10 +12,10 @@ p.add_argument('-C',action='store_true',help='cycle (default: run)')
 p.add_argument('-d',help='date in dd/mm/yyyy (default: today)')
 p.add_argument('-t',help='hour (default: randint(7,21))',type=int,default=random.randint(7,21))
 p.add_argument('-z',help='timezone (default: +8)',type=int,default=8)
-p.add_argument('-k',help='estimated distance (default: 10km)',type=int,default=10)
-p.add_argument('-K',help='original distance (default: 26km)',type=int,default=26)
-p.add_argument('-s',help='speed-prob/decay-rate (default: .2/100000',default='.2/100000')
-p.add_argument('-b',help='rest prob (default: .001',default=.001)
+p.add_argument('-k',help='estimated distance (default: 10km)',type=float,default=10)
+p.add_argument('-K',help='original distance (default: 26km)',type=float,default=26)
+p.add_argument('-s',help='speed-prob/decay-rate (default: .2/100000)',default='.2/100000')
+p.add_argument('-b',help='rest prob (default: .001)',default=.001)
 args = p.parse_args()
 
 def parse_infile(f):
@@ -51,11 +51,11 @@ assert args.k and args.k>0,'target distance must be positive'
 assert args.K>0,'original distance must be positive'
 assert args.r>=0 and args.r<=1,'randomness must be between 0 and 1'
 args.k += random.randint(0,1000)/1000-.5; n,r = round(args.k/args.K*len(d)),random.randint(0,round(args.r*len(d)))
-try: s,q = args.s.split('/'); s,q = float(s),float(q); assert s>0 and q>0
+try: s,q = args.s.split('/'); s,q = float(s),float(q); assert s>=0 and (q>0 or q==-1)
 except: print('[-] invalid speed rate. defaulting to 2/100000'); s,q=2,100000
 try: b = float(args.b); assert b>0
 except: print('[-] invalid rest prob. defaulting to .001'); b = .001
-print('[=] generating gpx:\n\ttype:\t\t%s\n\tstart time:\t%s (GMT%+d)\n\tpoints:\t\t%s (est. %s km)\n\tstart:\t\t%s\n\tspeed prob:\t%s-r/%s\n\trest prob:\t%s\n\toutfile:\t%s'%('cycle' if args.C else 'run',st+datetime.timedelta(hours=args.z),args.z,n,args.k,r,s,q,b,outfile))
+print('[=] generating gpx:\n\ttype:\t\t%s\n\tstart time:\t%s (GMT%+d)\n\tpoints:\t\t%s (est. %s km)\n\tstart:\t\t%s\n\tspeed prob:\t%s-r/%s\n\trest prob:\t%s\n\toutfile:\t%s'%('cycle' if args.C else 'run',st+datetime.timedelta(hours=args.z),args.z,n,args.k,r,s,'inf' if q==-1 else q,b,outfile))
 
 try: f = open(outfile,'w')
 except: print('[-] error opening outfile');quit()
