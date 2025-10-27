@@ -23,7 +23,8 @@ Run `gpxgen -h` to see the other command line options.
 |parameter|option|default value|explanation|
 |---|---|---|---|
 |outfile|`-o`|[YYYYmmdd]_[strava_default].gpx|pass this option to set the outfile path. must be a writable location|
-|padding|`-p`|no pad|if `-p` is set, gpxgen interpolates 3 points between every pair of successive points in the input during input processing. useful for converting bike rides to runs|
+|padding|`-p`|no pad|if `-p` is set, gpxgen interpolates 3 points between every pair of successive points in the input during processing. useful for converting bike rides to runs|
+|loop|`-l`|no loop|if `-l` is set, gpxgen appends to the input a mirror copy of itself during processing, so that the route forms a loop. useful for avoiding discontinuities in the output route when it loops around (see `-K` below)|
 |randomness|`-r`|1|value between 0 and 1. when generating the route, gpxgen randomly picks a starting point in the initial [randomness] of the input file. if set to 1, route starts at any point; if set to 0, route only starts at the starting point of the input route|
 |activity type|`-C`|run|set `-C` to generate a cycling ride instead of a run|
 |date|`-d`|current system date|date of the generated route. pass a date string in dd/mm/YYYY format|
