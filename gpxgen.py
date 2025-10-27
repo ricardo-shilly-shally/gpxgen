@@ -7,6 +7,7 @@ p = argparse.ArgumentParser()
 p.add_argument('-i',help='infile')
 p.add_argument('-o',help='outfile')
 p.add_argument('-p',action='store_true',help='pad input file to 4x points')
+p.add_argument('-l',action='store_true',help='loop input file by appending a mirror copy')
 p.add_argument('-r',help='randomness',type=float,default=1)
 p.add_argument('-C',action='store_true',help='cycle (default: run)')
 p.add_argument('-d',help='date in dd/mm/yyyy (default: today)')
@@ -23,6 +24,7 @@ def parse_infile(f):
     except: print('[-] error opening infile');quit()
     try: b = BeautifulSoup(d,'html.parser'); a = ['%s,%s,%s'%(l['lat'],l['lon'],l.find_all('ele')[0].text) for l in b.find_all('trkpt')]
     except: print('[-] infile parsing error');quit()
+    if args.l: a += a[::-1]
     if args.p:
         try:
             c = []
@@ -43,7 +45,7 @@ outfile = args.o if args.o else './%d%02d%02d_'%(y,m,d)+t.replace(' ','_')+'.gpx
 
 if args.i: infile = args.i
 elif not infile: print('[-] no input file provided');quit()
-print('[=] parsing infile %s%s'%(infile,' with padding' if args.p else ''))
+print('[=] parsing infile %s'%infile)
 d = parse_infile(infile)
 print('[+] parsing success. %s datapoints'%len(d))
 
