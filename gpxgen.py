@@ -6,15 +6,14 @@ warnings.filterwarnings("ignore", message='.*features="xml".*')
 p = argparse.ArgumentParser()
 p.add_argument('-i',help='infile')
 p.add_argument('-o',help='outfile')
-p.add_argument('-p',action='store_true',help='pad input file to 4x points')
-p.add_argument('-l',action='store_true',help='loop input file by appending a mirror copy')
+p.add_argument('-p',help='input file padding amount (default 1x)',type=int,default=1)
+p.add_argument('-l',action='store_true',help='don\'t loop input file')
 p.add_argument('-r',help='randomness',type=float,default=1)
 p.add_argument('-C',action='store_true',help='cycle (default: run)')
 p.add_argument('-d',help='date in dd/mm/yyyy (default: today)')
 p.add_argument('-t',help='hour (default: randint(7,21))',type=int,default=random.randint(7,21))
 p.add_argument('-z',help='timezone (default: +8)',type=int,default=8)
-p.add_argument('-k',help='estimated distance (default: 10km)',type=float,default=10)
-p.add_argument('-K',help='original distance (default: 26km)',type=float,default=26)
+p.add_argument('-x',help='reps of original dist (default: 1x)',type=float,default=1)
 p.add_argument('-s',help='speed-prob/decay-rate (default: .2/100000)',default='.2/100000')
 p.add_argument('-b',help='rest prob (default: .001)',default=.001)
 args = p.parse_args()
@@ -24,11 +23,12 @@ def parse_infile(f):
     except: print('[-] error opening infile');quit()
     try: b = BeautifulSoup(d,'html.parser'); a = ['%s,%s,%s'%(l['lat'],l['lon'],l.find_all('ele')[0].text) for l in b.find_all('trkpt')]
     except: print('[-] infile parsing error');quit()
-    if args.l: a += a[::-1]
-    if args.p:
+    if not args.l: a += a[::-1]
+    assert args.p>=1,'padding must be a positive integer'
+    if args.p>1:
         try:
             c = []
-            for k,v in enumerate(a[:-1]): c.append(v); c += [','.join(('%%.%sf'%(1 if j==2 else 7))%(((3-i)*float(v.split(',')[j])+(i+1)*float(a[k+1].split(',')[j]))/4) for j in range(3)) for i in range(3)]
+            for k,v in enumerate(a[:-1]): c.append(v); c += [','.join(('%%.%sf'%(1 if j==2 else 7))%(((args.p-i-1)*float(v.split(',')[j])+(i+1)*float(a[k+1].split(',')[j]))/args.p) for j in range(3)) for i in range(args.p)]
             a = c+[a[-1]]
         except: print('[-] error while padding infile');quit()
     return a
@@ -40,7 +40,7 @@ except:
 assert args.t in range(24),'hours must be between 0 to 23'
 assert args.z in range(-12,15),'timezome must be between -12 and +14'
 st = datetime.datetime(y,m,d,args.t,random.randint(0,59),random.randint(0,59))-datetime.timedelta(hours=args.z)
-t = '%s %s'%('Morning' if args.t<12 else 'Afternoon' if args.t<17 else 'Evening','Ride' if args.C else 'Run')
+t = '%s %s'%('Morning' if args.t in range(4,12) else 'Lunch' if args.t in range(11,15) else 'Afternoon' if args.t in range(14,19) else 'Evening' if args.t in range(18,22) else 'Night','Ride' if args.C else 'Run')
 outfile = args.o if args.o else './%d%02d%02d_'%(y,m,d)+t.replace(' ','_')+'.gpx'
 
 if args.i: infile = args.i
@@ -49,15 +49,14 @@ print('[=] parsing infile %s'%infile)
 d = parse_infile(infile)
 print('[+] parsing success. %s datapoints'%len(d))
 
-assert args.k and args.k>0,'target distance must be positive'
-assert args.K>0,'original distance must be positive'
+assert args.x>0,'reps must be positive'
 assert args.r>=0 and args.r<=1,'randomness must be between 0 and 1'
-args.k += random.randint(0,1000)/1000-.5; n,r = round(args.k/args.K*len(d)),random.randint(0,round(args.r*len(d)))
+n,r = round(args.x*len(d)/(args.l+1)),random.randint(0,round(args.r*len(d)))
 try: s,q = args.s.split('/'); s,q = float(s),float(q); assert s>=0 and (q>0 or q==-1)
 except: print('[-] invalid speed rate. defaulting to 2/100000'); s,q=2,100000
 try: b = float(args.b); assert b>0
 except: print('[-] invalid rest prob. defaulting to .001'); b = .001
-print('[=] generating gpx:\n\ttype:\t\t%s\n\tstart time:\t%s (GMT%+d)\n\tpoints:\t\t%s (est. %s km)\n\tstart:\t\t%s\n\tspeed prob:\t%s-r/%s\n\trest prob:\t%s\n\toutfile:\t%s'%('cycle' if args.C else 'run',st+datetime.timedelta(hours=args.z),args.z,n,args.k,r,s,'inf' if q==-1 else q,b,outfile))
+print('[=] generating gpx:\n\ttype:\t\t%s\n\tstart time:\t%s (GMT%+d)\n\tpoints:\t\t%s (%s reps)\n\tstart:\t\t%s\n\tspeed prob:\t%s-r/%s\n\trest prob:\t%s\n\toutfile:\t%s'%('cycle' if args.C else 'run',st+datetime.timedelta(hours=args.z),args.z,n,args.x,r,s,'inf' if q==-1 else q,b,outfile))
 
 try: f = open(outfile,'w')
 except: print('[-] error opening outfile');quit()
